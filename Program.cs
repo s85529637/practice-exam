@@ -6,15 +6,10 @@ using takeanexam.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .Build();
-
 Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(configuration)
+    .ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
-var redisConfig = configuration.GetSection("Redis").Get<Redis>();
+var redisConfig = builder.Configuration.GetSection("Redis").Get<Redis>();
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
@@ -32,7 +27,8 @@ builder.Logging.ClearProviders();
 builder.Logging.AddSerilog();
 builder.Services.AddScoped<RedisService>();
 builder.Services.AddScoped<IWeatherForecastApiService, WeatherForecastApiService>();
-builder.Services.Configure<DBConnection>(configuration.GetSection("DBConnection"));
+builder.Services.Configure<DBConnection>(builder.Configuration.GetSection("DBConnection"));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
